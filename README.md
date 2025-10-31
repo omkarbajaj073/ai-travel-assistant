@@ -25,9 +25,7 @@ This application leverages multiple Cloudflare services to create a complete, se
 
 **How It's Used**:
 - The application uses `@cf/meta/llama-3.3-70b-instruct-fp8-fast` model through Cloudflare Workers AI binding
-- The LLM powers the conversational interface in `src/index.ts` via the `TravelAgent` class
 - System prompts include user preferences, current itinerary state, and location context to generate personalized responses
-- The model generates both user-friendly markdown descriptions and structured JSON itineraries following a strict schema
 - Responses are streamed to the client in real-time for a responsive user experience
 
 **Configuration**: The model is configured in `src/index.ts` with `max_tokens: 2048` and uses the raw response mode for streaming.
@@ -40,8 +38,6 @@ This application leverages multiple Cloudflare services to create a complete, se
 - **Conversation State Management**: Each conversation is managed by a dedicated Durable Object instance (`ConversationDO` class)
 - **Isolated State**: Each conversation gets its own Durable Object with a unique ID, ensuring complete isolation between conversations
 - **Workflow Orchestration**: The main Worker (`src/index.ts`) routes requests to the appropriate Durable Object based on conversation ID
-- **Request Coordination**: Handles multiple concurrent requests for the same conversation atomically within the Durable Object
-- **Lifecycle Management**: Auto-initializes conversations on first message, manages metadata, and handles cleanup
 
 **Implementation**: 
 - Durable Object namespace `CONVERSATIONS` is bound in `wrangler.jsonc`
@@ -55,14 +51,8 @@ This application leverages multiple Cloudflare services to create a complete, se
 **How It's Used**:
 - **Chat Interface**: Static HTML/CSS/JavaScript frontend deployed on Cloudflare Pages
 - **Real-time Communication**: Uses Fetch API with Server-Sent Events (SSE) streaming for real-time AI responses
-- **User Interface**: Multi-page application with:
-  - Chat interface (`pages/index.html`)
-  - Preferences management (`pages/preferences.html`)
-  - Itinerary view (`pages/itinerary.html`)
 - **Client-side State**: Manages conversation ID in localStorage, sends location context when available
 - **Response Processing**: Parses streaming responses, filters JSON data for display, and extracts structured itinerary data
-
-**Note**: Voice input is not currently implemented. The application uses text-based chat input only.
 
 ### 4. Memory / State
 
@@ -85,23 +75,13 @@ This application leverages multiple Cloudflare services to create a complete, se
 
 ## Template Used
 
-This application is based on the **Cloudflare LLM Chat Application Template**, which provides:
+This application is forked off of the **Cloudflare LLM Chat Application Template**, which provides:
 
 - Basic chat interface with streaming responses
 - Workers AI integration pattern
 - Server-Sent Events (SSE) streaming implementation
 - TypeScript type definitions for Workers environment
 - Wrangler configuration for local development
-
-**Modifications Made**:
-- Extended to include Durable Objects for state management
-- Added multi-conversation support with conversation management
-- Implemented itinerary extraction and validation from AI responses
-- Added preferences management system
-- Created multi-page interface (chat, preferences, itinerary)
-- Implemented location context integration
-- Added structured itinerary schema and validation
-- Enhanced system prompts with explicit schema requirements
 
 ## AI in Building This Application
 
@@ -153,49 +133,19 @@ Due to the rapid development timeline (built in a day), this application has sev
    - No protection against spam or abuse
 
 7. **Limited Testing**:
-   - Unit tests are not implemented
-   - Integration tests are not implemented
    - Only manual testing was performed
 
 8. **Schema Validation**:
    - Itinerary schema validation happens client-side only
-   - No server-side validation of itinerary structure
    - Legacy format transformations may fail on unusual data structures
 
 9. **Storage Limits**:
    - No explicit handling of Durable Object storage limits
-   - Large conversation histories may cause issues
-   - No cleanup mechanism for old conversations
-
+   
 10. **Production Readiness**:
     - Error logging is basic
     - No monitoring or alerting configured
     - No analytics or usage tracking
-
-### Potential Failure Points
-
-1. **AI Model Availability**: If Workers AI service is unavailable, the application will fail silently
-2. **Durable Object Migration**: If Durable Object schema changes, migration logic is not implemented
-3. **Concurrent Updates**: While Durable Objects provide atomicity, race conditions could still occur in the Worker layer
-4. **Message History Growth**: No pagination or cleanup for message history - could grow unbounded
-5. **Location Services**: Geolocation API failures are not handled gracefully
-6. **JSON Parsing**: Malformed JSON from AI responses could break the application
-7. **Browser Compatibility**: Limited testing on different browsers - may have compatibility issues
-
-### Recommendations for Production
-
-Before deploying to production, consider:
-
-1. Implementing comprehensive error handling and user feedback
-2. Adding authentication and user management
-3. Implementing rate limiting and abuse prevention
-4. Adding server-side validation for all inputs
-5. Implementing proper logging and monitoring
-6. Adding unit and integration tests
-7. Implementing conversation cleanup and archival policies
-8. Adding backup and recovery mechanisms
-9. Performance testing under load
-10. Security audit of all input handling
 
 ## How to Run
 

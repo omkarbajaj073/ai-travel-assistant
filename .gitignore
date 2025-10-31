@@ -1,0 +1,44 @@
+# Node
+node_modules/
+logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# TypeScript
+*.tsbuildinfo
+
+# Build output
+/dist/
+/build/
+/*.cache/
+.cache/
+.parcel-cache/
+
+# Cloudflare Wrangler
+.wrangler/
+.wrangler/state/
+.wrangler/tmp/
+.workers/
+.worker/
+
+# Local environment files
+.env
+.env.*
+!.env.example
+.dev.vars
+
+# Test coverage
+coverage/
+
+# OS / Editor
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+*.swp
+
+# Misc
+.tmp/

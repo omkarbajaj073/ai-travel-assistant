@@ -1,0 +1,12 @@
+name = "ai-travel-assistant"
+type = "javascript"  # or "typescript" if using TS
+
+account_id = "acb3adbab0a496e204ef9a87681e3bd9"
+workers_dev = true
+
+[env.production]
+route = ""  # optional, only if deploying to a custom domain
+zone_id = ""  # optional
+
+[ai]
+binding = "AI"

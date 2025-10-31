@@ -175,7 +175,7 @@ export default {
 					}),
 				);
 			}
-			if (request.method === "DELETE" && subpath === "") {
+			if (request.method === "DELETE" && subpath === "/") {
 				const doUrl = new URL(request.url);
 				doUrl.pathname = "/delete";
 				return stub.fetch(
@@ -278,32 +278,85 @@ export default {
 								const { done, value } = await reader.read();
 								if (done) break;
 
+								// Debug: raw chunk size
+								console.log("[persist] chunk bytes=", value?.length || 0);
+
 								buffer += decoder.decode(value, { stream: true });
+								// Debug: buffer preview
+								console.log("[persist] buffer preview=", buffer.slice(0, 200));
 								const lines = buffer.split("\n");
 								buffer = lines.pop() || "";
+								// Debug: lines count
+								console.log("[persist] lines count=", lines.length);
 
 								for (const line of lines) {
 									const trimmed = line.trim();
-									if (!trimmed) continue;
+									if (!trimmed) {
+										console.log("[persist] skipped empty line");
+										continue;
+									}
+
+									// Support SSE-style lines prefixed with "data:" and [DONE] markers
+									const raw = trimmed.startsWith("data:") ? trimmed.slice(5).trim() : trimmed;
+									if (raw === "[DONE]") {
+										continue;
+									}
+
+									// Debug: log raw line preview
+									console.log("[persist] line=", raw.slice(0, 120));
+
 									try {
-										const json = JSON.parse(trimmed);
+										const json = JSON.parse(raw);
 										if (json.response) {
 											assistantText += json.response;
 										} else if (json.text) {
 											assistantText += json.text;
 										} else if (json.content) {
 											assistantText += json.content;
+										} else if (json.delta && json.delta.content) {
+											assistantText += json.delta.content;
 										}
 									} catch (e) {
-										// Skip invalid JSON
+										// Skip non-JSON lines
 									}
 								}
 							}
 
+							// Process any remaining buffer (complete JSON objects without newlines)
+							if (buffer.trim()) {
+								console.log("[persist] processing final buffer=", buffer.slice(0, 200));
+								const trimmed = buffer.trim();
+								const raw = trimmed.startsWith("data:") ? trimmed.slice(5).trim() : trimmed;
+								
+								if (raw !== "[DONE]") {
+									try {
+										const json = JSON.parse(raw);
+										if (json.response) {
+											assistantText += json.response;
+										} else if (json.text) {
+											assistantText += json.text;
+										} else if (json.content) {
+											assistantText += json.content;
+										} else if (json.delta && json.delta.content) {
+											assistantText += json.delta.content;
+										}
+										console.log("[persist] extracted from final buffer, now length=", assistantText.length);
+									} catch (e) {
+										console.log("[persist] failed to parse final buffer:", e);
+									}
+								}
+							}
+
+							// Debug: final state after loop
+							console.log("[persist] loop done, assistantText length=", assistantText.length);
+							console.log("[persist] final buffer=", buffer.slice(0, 100));
+
 							// Persist assistant message
 							if (assistantText.trim()) {
+								console.log("[persist] accumulated assistant chars=", assistantText.length);
 								const messageUrl = new URL(request.url);
 								messageUrl.pathname = "/message";
+								console.log("[persist] POSTing assistant to:", messageUrl.toString());
 								await stub.fetch(
 									new Request(messageUrl.toString(), {
 										method: "POST",
@@ -314,6 +367,21 @@ export default {
 										}),
 									}),
 								);
+
+								// Fetch back message list to verify
+								const verifyUrl = new URL(request.url);
+								verifyUrl.pathname = "/messages";
+								verifyUrl.search = "?limit=50";
+								const verifyResp = await stub.fetch(new Request(verifyUrl.toString()));
+								if (verifyResp.ok) {
+									const verifyData = (await verifyResp.json()) as { messages: ChatMessage[] };
+									console.log("[persist] messages after save count=", verifyData.messages.length);
+									for (const m of verifyData.messages) {
+										console.log("[persist] msg role=", m.role, " len=", (m.content || "").length);
+									}
+								} else {
+									console.log("[persist] verify fetch failed status=", verifyResp.status);
+								}
 							}
 						} catch (error) {
 							console.error("Error persisting assistant message:", error);

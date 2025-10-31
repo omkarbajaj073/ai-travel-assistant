@@ -35,11 +35,20 @@ export class ConversationDO {
 			if (method === "GET" && url.pathname === "/messages") {
 				const cursor = url.searchParams.get("cursor") || "0";
 				const limit = parseInt(url.searchParams.get("limit") || "50");
-				return this.getMessages(cursor, limit);
+				const resp = await this.getMessages(cursor, limit);
+				try {
+					const data = (await resp.clone().json()) as { messages: ChatMessage[] };
+					console.log("[DO] getMessages count=", data.messages.length);
+					for (const m of data.messages) {
+						console.log("[DO] msg role=", m.role, " len=", (m.content || "").length);
+					}
+				} catch {}
+				return resp;
 			}
 
 			if (method === "POST" && url.pathname === "/message") {
 				const body = (await request.json()) as ChatMessage;
+				console.log("[DO] appendMessage role=", body.role, " len=", (body.content || "").length);
 				return this.appendMessage(body);
 			}
 

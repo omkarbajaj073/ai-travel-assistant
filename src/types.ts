@@ -37,6 +37,7 @@ export interface Preferences {
 	travelMode?: string;
 	pace?: "relaxed" | "balanced" | "aggressive";
 	budgetLevel?: "low" | "mid" | "high";
+	miscellaneous?: string;
 }
 
 /**

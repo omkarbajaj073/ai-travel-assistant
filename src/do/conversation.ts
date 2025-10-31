@@ -96,19 +96,34 @@ export class ConversationDO {
 	}
 
 	async getData(): Promise<Response> {
+		console.log("[DO] getData() called");
 		const meta = (await this.state.storage.get("meta")) as
 			| ConversationMeta
 			| undefined;
+		console.log("[DO] meta:", JSON.stringify(meta, null, 2));
+		
 		const itinerary =
 			((await this.state.storage.get("itinerary")) as Itinerary) || {
 				days: [],
 			};
+		console.log("[DO] itinerary from storage:", JSON.stringify(itinerary, null, 2));
+		console.log("[DO] itinerary type:", typeof itinerary);
+		console.log("[DO] itinerary.days:", itinerary.days);
+		console.log("[DO] itinerary.days type:", typeof itinerary.days);
+		console.log("[DO] itinerary.days is array:", Array.isArray(itinerary.days));
+		console.log("[DO] itinerary.days length:", itinerary.days?.length);
+		
 		const preferences =
 			((await this.state.storage.get("preferences")) as Preferences) || {};
+		console.log("[DO] preferences:", JSON.stringify(preferences, null, 2));
 
-		if (!meta) return new Response("Not found", { status: 404 });
+		if (!meta) {
+			console.log("[DO] No meta found, returning 404");
+			return new Response("Not found", { status: 404 });
+		}
 
 		const data: ConversationData = { ...meta, itinerary, preferences };
+		console.log("[DO] Returning data:", JSON.stringify(data, null, 2));
 		return Response.json(data);
 	}
 
@@ -163,6 +178,10 @@ export class ConversationDO {
 
 	async initialize(): Promise<ConversationMeta> {
 		const now = Date.now();
+		
+		// Check if preferences already exist (might have been saved before first prompt)
+		const existingPreferences = (await this.state.storage.get("preferences")) as Preferences | undefined;
+		
 		const meta: ConversationMeta = {
 			id: this.state.id.toString(),
 			title: "New Itinerary",
@@ -172,7 +191,13 @@ export class ConversationDO {
 		await this.state.storage.put("meta", meta);
 		await this.state.storage.put("messageCount", 0);
 		await this.state.storage.put("itinerary", { days: [] } satisfies Itinerary);
-		await this.state.storage.put("preferences", {} satisfies Preferences);
+		
+		// Only set empty preferences if they don't already exist
+		// This preserves preferences that were saved before the first prompt
+		if (!existingPreferences) {
+			await this.state.storage.put("preferences", {} satisfies Preferences);
+		}
+		
 		return meta;
 	}
 

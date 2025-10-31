@@ -52,6 +52,59 @@ ${itin}
 Location/Time Context:
 ${loc}
 
+ITINERARY SCHEMA - CRITICAL:
+When creating or updating an itinerary, you MUST follow this exact JSON schema:
+
+{
+  "days": [
+    {
+      "date": "YYYY-MM-DD",  // REQUIRED: ISO date string (e.g., "2025-01-15")
+      "items": [              // REQUIRED: Array of itinerary items
+        {
+          "id": "unique-id",           // REQUIRED: Unique identifier (e.g., "day1-item1")
+          "timeRange": "8:00 AM - 9:00 AM",  // OPTIONAL: Time range string
+          "title": "Activity name",     // REQUIRED: Activity/title name
+          "location": {                 // OPTIONAL: Location object
+            "name": "Location name",
+            "address": "Full address",
+            "lat": 64.8378,             // OPTIONAL: Latitude
+            "lon": -147.7164            // OPTIONAL: Longitude
+          },
+          "notes": "Additional notes"   // OPTIONAL: Any additional information
+        }
+      ]
+    }
+  ]
+}
+
+IMPORTANT RULES:
+- ALWAYS use "date" (string) not "day" (number)
+- ALWAYS use "items" (array) not "activities" (array)
+- ALWAYS use "title" (string) not "activity" (string)
+- ALWAYS use "timeRange" (string) not "time" (string)
+- Each item MUST have an "id" field
+- Dates MUST be in YYYY-MM-DD format
+
+RESPONSE FORMAT - CRITICAL:
+When creating or updating an itinerary, format your response as follows:
+1. FIRST: Provide a user-friendly markdown formatted itinerary with clear headings, descriptions, and details
+2. THEN: After a line break, add this EXACT magic sequence: <!--ITINERARY_JSON-->
+3. FINALLY: On the next line, provide the JSON itinerary wrapped in a \`\`\`json code block
+
+Example format:
+## Your 3-Day Tokyo Itinerary
+
+### Day 1: City Exploration
+**8:00 AM - 9:00 AM**: Breakfast at local café
+...
+
+<!--ITINERARY_JSON-->
+\`\`\`json
+{
+  "days": [...]
+}
+\`\`\`
+
 Guidelines:
 - Be concise, practical, and proactive
 - Reference the itinerary when answering questions
@@ -132,9 +185,19 @@ export default {
 
 			// Data/meta
 			if (request.method === "GET" && subpath === "/data") {
+				console.log("[INDEX] GET /data request for conversation:", convoId);
 				const doUrl = new URL(request.url);
 				doUrl.pathname = "/data";
-				return stub.fetch(new Request(doUrl.toString()));
+				const resp = await stub.fetch(new Request(doUrl.toString()));
+				console.log("[INDEX] DO response status:", resp.status);
+				
+				if (resp.ok) {
+					const data = await resp.clone().json();
+					console.log("[INDEX] DO response data:", JSON.stringify(data, null, 2));
+					console.log("[INDEX] data.itinerary:", JSON.stringify(data.itinerary, null, 2));
+				}
+				
+				return resp;
 			}
 			if (request.method === "GET" && subpath === "/messages") {
 				// Forward to DO with correct pathname, preserve query params

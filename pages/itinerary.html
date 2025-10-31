@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<title>Itinerary - Travel Agent</title>
+	<link rel="stylesheet" href="/assets/css/styles.css">
+	<script type="module" src="/js/navigation.js"></script>
+</head>
+<body>
+	<div class="app-container">
+		<aside class="sidebar">
+			<h1>Travel Agent</h1>
+			<button id="new-itinerary-btn" class="btn-primary">New Itinerary</button>
+			<hr>
+			<div id="conversations-list" class="conversations-list"></div>
+			<hr>
+			<nav>
+				<a href="/index.html" class="nav-link">Chat</a>
+				<a href="/preferences.html" class="nav-link">Preferences</a>
+				<a href="/itinerary.html" class="nav-link active">Itinerary</a>
+				<a href="/calendar.html" class="nav-link">Calendar</a>
+			</nav>
+		</aside>
+		<main class="itinerary-container">
+			<h2>Current Itinerary</h2>
+			<div id="itinerary-content">
+				<p class="empty-state">No itinerary items yet. Start a conversation to plan your trip!</p>
+			</div>
+		</main>
+	</div>
+	<script type="module" src="/js/itinerary.js"></script>
+</body>
+</html>
+

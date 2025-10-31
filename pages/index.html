@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<title>Travel Agent</title>
+	<link rel="stylesheet" href="/assets/css/styles.css">
+	<script type="module" src="/js/navigation.js"></script>
+</head>
+<body>
+	<div class="app-container">
+		<aside class="sidebar">
+			<h1>Travel Agent</h1>
+			<button id="new-itinerary-btn" class="btn-primary">New Itinerary</button>
+			<hr>
+			<div id="conversations-list" class="conversations-list">
+				<!-- Conversations will be loaded here -->
+			</div>
+			<hr>
+			<nav>
+				<a href="/preferences.html" class="nav-link">Preferences</a>
+				<a href="/itinerary.html" class="nav-link">Itinerary</a>
+				<a href="/calendar.html" class="nav-link">Calendar</a>
+			</nav>
+		</aside>
+		<main class="chat-container">
+			<div id="chat-messages" class="chat-messages">
+				<div class="message assistant-message">
+					<p>Hello! I'm your travel agent. Start planning your trip by telling me where you want to go and what you'd like to do.</p>
+				</div>
+			</div>
+			<div id="typing-indicator" class="typing-indicator">AI is thinking...</div>
+			<div class="message-input-container">
+				<textarea id="user-input" placeholder="Type your message..." rows="1"></textarea>
+				<button id="send-button" class="btn-primary">Send</button>
+			</div>
+		</main>
+	</div>
+	<script type="module" src="/js/chat.js"></script>
+</body>
+</html>
+

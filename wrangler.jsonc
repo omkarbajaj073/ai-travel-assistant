@@ -17,8 +17,24 @@
 	],
 	"assets": {
 		"binding": "ASSETS",
-		"directory": "./public"
+		"directory": "./pages"
 	},
+	"durable_objects": {
+		"bindings": [
+			{
+				"name": "CONVERSATIONS",
+				"class_name": "ConversationDO"
+			}
+		]
+	},
+	"migrations": [
+		{
+			"tag": "v1",
+			"new_classes": [
+				"ConversationDO"
+			]
+		}
+	],
 	"observability": {
 		"enabled": true
 	},

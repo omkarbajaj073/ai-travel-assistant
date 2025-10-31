@@ -186,6 +186,22 @@ Update the following files for your environment:
    - Local dev: Defaults to `http://localhost:8788` (update port if needed)
    - Production: Update `API_BASE` to your Worker URL
 
+Add a file to the project root **`wrangler.toml`** - 
+```toml
+name = "ai-travel-assistant"
+type = "javascript"  # or "typescript" if using TS
+
+account_id = "<Your account ID>"
+workers_dev = true
+
+[env.production]
+route = ""  # optional, only if deploying to a custom domain
+zone_id = ""  # optional
+
+[ai]
+binding = "AI"
+```
+
 ### Development
 
 Start the local development server:

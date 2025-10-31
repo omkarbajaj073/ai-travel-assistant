@@ -2,6 +2,14 @@ import { createConversation, getMessages, sendChatMessage } from './api.js';
 import { getLocation, getCurrentTime } from './geolocation.js';
 import { addConversationId, loadConversationList } from './conversations.js';
 
+// Initialize Showdown markdown converter
+const converter = new showdown.Converter({
+	simplifiedAutoLink: true,
+	strikethrough: true,
+	tables: true,
+	tasklists: true
+});
+
 // Get current conversation ID from URL or localStorage
 let currentConversationId = localStorage.getItem('currentConversationId');
 const urlParams = new URLSearchParams(window.location.search);
@@ -137,7 +145,7 @@ async function handleSend() {
 		// Create assistant message element
 		const assistantEl = document.createElement('div');
 		assistantEl.className = 'message assistant-message';
-		assistantEl.innerHTML = '<p></p>';
+		assistantEl.innerHTML = '';
 		chatMessages.appendChild(assistantEl);
 		scrollToBottom();
 
@@ -177,7 +185,9 @@ async function handleSend() {
 					if (jsonData.response) {
 						// Append new content to existing text
 						responseText += jsonData.response;
-						assistantEl.querySelector('p').textContent = responseText;
+						// Convert markdown to HTML and render
+						const html = converter.makeHtml(responseText);
+						assistantEl.innerHTML = html;
 						scrollToBottom();
 					}
 				} catch (e) {
@@ -208,7 +218,25 @@ async function handleSend() {
 function addMessageToChat(role, content) {
 	const messageEl = document.createElement('div');
 	messageEl.className = `message ${role}-message`;
-	messageEl.innerHTML = `<p>${content}</p>`;
+	
+	// Filter out JSON blocks from assistant messages
+	let filteredContent = content;
+	if (role === 'assistant') {
+		// Remove JSON code blocks that contain itinerary data
+		filteredContent = filteredContent.replace(/```json\s*[\s\S]*?```/g, '');
+		filteredContent = filteredContent.replace(/```\s*\{[\s\S]*?"days"[\s\S]*?\}\s*```/g, '');
+		// Remove standalone JSON objects with itinerary structure
+		filteredContent = filteredContent.replace(/\{\s*"days"\s*:[\s\S]*?\}/g, '');
+		filteredContent = filteredContent.trim();
+		
+		// Convert markdown to HTML for assistant messages
+		const html = converter.makeHtml(filteredContent);
+		messageEl.innerHTML = html;
+	} else {
+		// User messages: plain text
+		messageEl.innerHTML = `<p>${filteredContent}</p>`;
+	}
+	
 	chatMessages.appendChild(messageEl);
 	scrollToBottom();
 }

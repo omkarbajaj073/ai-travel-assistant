@@ -199,6 +199,7 @@ main {
 	padding: 1rem 1.5rem;
 	background: var(--bg-white);
 	border-top: 1px solid var(--border);
+	align-items: flex-end;
 }
 
 #user-input {
@@ -215,6 +216,35 @@ main {
 #user-input:disabled {
 	background: var(--bg-light);
 	cursor: not-allowed;
+}
+
+/* Send button - narrow circular button */
+#send-button {
+	width: 44px;
+	height: 44px;
+	min-width: 44px;
+	padding: 0;
+	border-radius: 50%;
+	background: var(--primary);
+	color: white;
+	border: none;
+	cursor: pointer;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	transition: background 0.2s;
+	flex-shrink: 0;
+	font-size: 0.9rem;
+}
+
+#send-button:hover {
+	background: var(--primary-hover);
+}
+
+#send-button:disabled {
+	background: var(--text-light);
+	cursor: not-allowed;
+	opacity: 0.6;
 }
 
 .preferences-container,
